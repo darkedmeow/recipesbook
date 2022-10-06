@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta name="viewport" http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Index</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.3/font/bootstrap-icons.css">
+    <script
+            src="https://code.jquery.com/jquery-3.6.0.min.js"
+            integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+            crossorigin="anonymous"></script>
+</head>
+<body>
+<header th:insert="header :: header"> </header>
+<main class="m-3">
+    <div class="container w-50 border rounded p-4 ">
+        <form class="needs-validation"
+              th:action="@{/addRecipe}" th:object="${recipeForm}"
+              method="post" enctype="multipart/form-data" novalidate>
+            <div class="mb-3 row">
+                <div class="col-9">
+                    <label for="inputTitle" class="form-label">Название рецепта</label>
+                    <input th:field="*{title}" type="text" class="form-control" minlength="2" maxlength="40" pattern="\D+"
+                           id="inputTitle" aria-describedby="title" required>
+                    <div class="valid-feedback">
+                        Все хорошо!
+                    </div>
+                    <div class="form-text">
+                        Название должно быть 2-40 символов в длину.
+                    </div>
+                </div>
+                <div class="col-3">
+                    <label for="inputTime" class="form-label">Время готовки</label>
+                    <input th:field="*{time}" id="inputTime" type="time" value="00:15" step="300"
+                           aria-label="time" class="form-control" list="timeForInput" required>
+                    <div class="valid-feedback">
+                        Все хорошо!
+                    </div>
+                    <datalist id="timeForInput">
+                        <option value="00:20">
+                        <option value="00:30">
+                        <option value="00:45">
+                        <option value="01:00">
+                        <option value="03:00">
+                    </datalist>
+                    <div class="form-text row">
+                        <div class="col-3">
+                            <button type="button" id="incTime" class="btn btn-light">+</button>
+                        </div>
+                        <div class="col-3">
+                            <button type="button" id="decTime" class="btn btn-light">-</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-3 ing-update">
+                <div class="col-9">
+                <h4>Ингридиенты</h4>
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Count</th>
+                            <th>Quantity</th>
+                            <th>
+                                <button type="button" name="addIng" data-update-ing-url="/addIng" class="btn btn-outline-secondary">
+                                    <i class="bi bi-plus-lg"></i>
+                                </button>
+                            </th>
+                        </tr>
+                        </thead>
+                        <tbody id="tblIngs">
+                        <tr th:fragment="ingredients" th:each="ing,itemStat : ${recipeForm.ings}">
+                            <td th:text="${itemStat.count}">1</td>
+                            <td>
+                                <input th:field="${recipeForm.ings[__${itemStat.index}__].name}" type="text" class="form-control" placeholder="Капуста" required>
+                            </td>
+                            <td>
+                                <input th:field="${recipeForm.ings[__${itemStat.index}__].count}" type="number" class="form-control" placeholder="3" min="0" max="1000" required>
+                            </td>
+                            <td>
+                                <select th:field="${recipeForm.ings[__${itemStat.index}__].quantity}" class="form-select" id="inputGroupSelect01" required>
+                                    <option value="6" selected>шт</option>
+                                    <option value="1">гр.</option>
+                                    <option value="2">ст.л</option>
+                                    <option value="3">чн.л.</option>
+                                    <option value="4">ст</option>
+                                    <option value="5">л</option>
+                                </select>
+                            </td>
+                            <td>
+                                <button class="btn-close" name="removeIng" th:value="${itemStat.index}" data-update-ing-url="/removeIng" type="button"></button>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-3">
+                    <label for="inputTags" class="form-label">Тэги</label>
+                    <textarea th:field="*{tags}"  class="form-control" rows="10"
+                               id="inputTags" aria-describedby="title"
+                               placeholder="#италия&#10;#здороваяеда&#10;#гарнир" required></textarea>
+                    <div class="valid-feedback">
+                        Все хорошо!
+                    </div>
+                </div>
+            </div>
+            <div class="mb-3 step-update">
+                <h4>Последовательность</h4>
+                <div id="stepsForm">
+                    <div th:fragment="steps" id="step" class="mb-3" th:each="step,itemStat : ${recipeForm.steps}">
+                        <h6>Шаг <span th:text="${itemStat.count}">1</span></h6>
+                        <div class="d-inline-flex w-100 justify-content-between">
+                            <label class="form-label">Название</label>
+                            <button name="removeStep" th:value="${itemStat.index}" type="button" class="btn btn-close"
+                                    aria-label="Close" data-update-step-url="/removeStep">
+                            </button>
+                        </div>
+                        <input th:field="${recipeForm.steps[__${itemStat.index}__].title}" type="text" class="form-control" aria-describedby="title" required>
+                        <label for="desc" class="form-label">Описание</label>
+                        <textarea th:field="${recipeForm.steps[__${itemStat.index}__].description}" class="form-control" id="desc" rows="3"></textarea>
+                    </div>
+                </div>
+                <button name="addStep" type="button" class="btn btn-success"
+                        aria-label="Close" data-update-step-url="/addStep">
+                    <i class="bi bi-plus-lg"></i>
+                </button>
+            </div>
+            <div class="input-group mb-3">
+                <input th:field="*{image}" type="file" class="form-control" id="inputGroupFile" required>
+                <label class="input-group-text" for="inputGroupFile">Загрузить</label>
+            </div>
+            <button type="submit" class="btn btn-success">Добавить рецепт</button>
+        </form>
+    </div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+<script src="../static/js/script.js" th:src="@{/js/script.js}"></script>
+<script type="text/javascript">
+
+            // Пример стартового JavaScript для отключения отправки форм при наличии недопустимых полей
+            (function () {
+            'use strict'
+
+            // Получите все формы, к которым мы хотим применить пользовательские стили проверки Bootstrap
+            var forms = document.querySelectorAll('.needs-validation')
+
+            // Зацикливайтесь на них и предотвращайте отправку
+            Array.prototype.slice.call(forms)
+            .forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+            event.preventDefault()
+            event.stopPropagation()
+            }
+
+            form.classList.add('was-validated')
+            }, false)
+            })
+            })()
+
+        </script>
+</body>
+</html>
